@@ -106,8 +106,6 @@ jobs:
           echo "bbg=$BBG" >> $GITHUB_OUTPUT
           AK3=$(git ls-remote https://github.com/WildKernels/AnyKernel3.git refs/heads/gki-2.0 | awk '{print $1}')
           echo "anykernel3=$AK3" >> $GITHUB_OUTPUT
-          DUCHAMP=$(git ls-remote https://github.com/ahmed-alnassif/GKI-Duchamp.git refs/heads/master | awk '{print $1}')
-          echo "duchamp=$DUCHAMP" >> $GITHUB_OUTPUT
 
       - name: Build report
         id: report
@@ -217,8 +215,6 @@ jobs:
             build_branch_row "Baseband Guard" "main" "$BBG" "Vulnerability fixes"
             AK3="${{ steps.branches.outputs.anykernel3 }}"
             build_branch_row "AnyKernel3" "gki-2.0" "$AK3" "Packaging updates"
-            DP="${{ steps.branches.outputs.duchamp }}"
-            build_branch_row "GKI-Duchamp" "master" "$DP" "Kernel hardening patches"
 
             echo ""
             echo "### Quick actions"
@@ -277,30 +273,6 @@ jobs:
               await github.rest.actions.createWorkflowDispatch({
                 owner: context.repo.owner, repo: context.repo.repo,
                 workflow_id: 'main.yml', ref: 'main', inputs: legacyInputs,
-              });
-            }
-
-            const tensorInputs = {
-              release_type: 'Action', susfs: 'true', use_repo: 'true',
-              root: 'KernelSU-Next', variant: 'Normal',
-            };
-            const tensorMap = [
-              ['susfs_a14_6_1',  'build_a14_6_1'],
-              ['susfs_a15_6_6',  'build_a15_6_6'],
-              ['susfs_a16_6_12', 'build_a16_6_12'],
-            ];
-            let tensorTriggered = false;
-            for (const [stepId, input] of tensorMap) {
-              if (readFlag(stepId)) { tensorInputs[input] = 'true'; tensorTriggered = true; }
-            }
-            if (readFlag('ksu')) {
-              tensorInputs.build_a14_6_1 = 'true';
-              tensorTriggered = true;
-            }
-            if (tensorTriggered) {
-              await github.rest.actions.createWorkflowDispatch({
-                owner: context.repo.owner, repo: context.repo.repo,
-                workflow_id: 'pixel.yml', ref: 'main', inputs: tensorInputs,
               });
             }
 
